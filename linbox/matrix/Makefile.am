@@ -20,7 +20,7 @@
 
 pkgincludesubdir=$(pkgincludedir)/matrix
 
-SUBDIRS= sparsematrix densematrix matrixdomain sliced3
+SUBDIRS= sparsematrix densematrix blockedmatrix matrixdomain sliced3
 
 BASIC_HDRS =                  \
 	archetype.h               \

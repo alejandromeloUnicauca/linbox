@@ -304,6 +304,7 @@ linbox/field/Makefile
 linbox/matrix/Makefile
 linbox/matrix/sparsematrix/Makefile
 linbox/matrix/densematrix/Makefile
+linbox/matrix/blockedmatrix/Makefile
 linbox/matrix/matrixdomain/Makefile
 linbox/matrix/sliced3/Makefile
 linbox/randiter/Makefile
