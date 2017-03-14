@@ -40,15 +40,14 @@ namespace LinBox
 	/**
 	 *
 	 */
-	template<class _Field, class _Allocator<_Field> >
+	template<class _Field, class _Allocator>
 	class BlockedMatrix{
 	public:
 		typedef _Field                                     Field;
 		typedef typename Field::Element                  Element;    //!< Element type
-		typedef _Allocator<Field>                      Allocator;
+		typedef _Allocator                             Allocator;
 		typedef BlockedMatrix<Field,Allocator>            Self_t;    //!< Self type
 		typedef const BlockedMatrix<Field,Allocator> constSelf_t;    //!< Self type
-		typedef Block<Field,_Repr>                  Block<_Repr>;
 
                 typedef Self_t                                matrixType;    //!< matrix type
                 typedef constSelf_t                      constMatrixType;    //!< matrix type
@@ -127,7 +126,7 @@ namespace LinBox
 		 * @param a_ij Block to set
 		 */
 		template<class _Repr>
-		void setBlock(size_t i, size_t j, const Block<_Repr>& a_ij);
+		void setBlock(size_t i, size_t j, const Block<Field,_Repr>& a_ij);
 
 		/** Get a writeable reference to the block in the (i, j) position.
 		 * @param i Block Row index of entry
@@ -135,7 +134,7 @@ namespace LinBox
 		 * @returns Reference to block
 		 */
 		template<class _Repr>
-		Block<_Repr>& refBlock(size_t i, size_t j);
+		Block<Field,_Repr>& refBlock(size_t i, size_t j);
 
 		/** Get a read-only reference to the block in the (i, j) position.
 		 * @param i Block Row index
@@ -143,7 +142,7 @@ namespace LinBox
 		 * @returns Const reference to block
 		 */
 		template<class _Repr>
-		const Block<_Repr>& getBlock(size_t i, size_t j) const;
+		const Block<Field,_Repr>& getBlock(size_t i, size_t j) const;
 
 		/** Copy the (i, j) block into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -154,7 +153,7 @@ namespace LinBox
 		 * @returns Reference to x
 		 */
 		template<class _Repr>
-		Block<_Repr>& getBlock(Block<_Repr>& x, size_t i, size_t j) const;
+		Block<Field,_Repr>& getBlock(Block<Field,_Repr>& x, size_t i, size_t j) const;
 
 		//////////////////
 		//   ELEMENTS   //
@@ -202,9 +201,8 @@ namespace LinBox
 		typedef typename _BlockedMatrix::Field                 Field;
 		typedef typename Field::Element                      Element;
 		typedef typename _BlockedMatrix::Allocator         Allocator;
-		typedef AlignedBlockedSubmatrix<_Matrix>              Self_t;
-		typedef const AlignedBlockedSubmatrix<_Matrix>   constSelf_t;
-		typedef Block<Field,_Repr>                      Block<_Repr>;
+		typedef AlignedBlockedSubmatrix<_BlockedMatrix>       Self_t;
+		typedef const Self_t                             constSelf_t;
 		typedef Self_t                                 subMatrixType;
 		typedef constSelf_t                       constSubMatrixType;
 		typedef typename _BlockedMatrix::Self_t           matrixType;
@@ -290,7 +288,7 @@ namespace LinBox
 		 * @param a_ij Block to set
 		 */
 		template<class _Repr>
-		void setBlock(size_t i, size_t j, const Block<_Repr>& a_ij);
+		void setBlock(size_t i, size_t j, const Block<Field,_Repr>& a_ij);
 
 		/** Get a writeable reference to the block in the (i, j) position.
 		 * @param i Block Row index of entry
@@ -298,7 +296,7 @@ namespace LinBox
 		 * @returns Reference to block
 		 */
 		template<class _Repr>
-		Block<_Repr>& refBlock(size_t i, size_t j);
+		Block<Field,_Repr>& refBlock(size_t i, size_t j);
 
 		/** Get a read-only reference to the block in the (i, j) position.
 		 * @param i Block Row index
@@ -306,7 +304,7 @@ namespace LinBox
 		 * @returns Const reference to block
 		 */
 		template<class _Repr>
-		const Block<_Repr>& getBlock(size_t i, size_t j) const;
+		const Block<Field,_Repr>& getBlock(size_t i, size_t j) const;
 
 		/** Copy the (i, j) block into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -317,7 +315,7 @@ namespace LinBox
 		 * @returns Reference to x
 		 */
 		template<class _Repr>
-		Block<_Repr>& getBlock(Block<_Repr>& x, size_t i, size_t j) const;
+		Block<Field,_Repr>& getBlock(Block<Field,_Repr>& x, size_t i, size_t j) const;
 
 		//////////////////
 		//   ELEMENTS   //
@@ -356,9 +354,6 @@ namespace LinBox
 
 	}; // end of class AlignedBlockedSubmatrix
 } // end of namespace LinBox
-
-#include "blocked-matrix.inl"
-#include "blocked-submatrix.inl"
 
 #endif // __LINBOX_matrix_blockedmatrix_blocked_matrix_H
 

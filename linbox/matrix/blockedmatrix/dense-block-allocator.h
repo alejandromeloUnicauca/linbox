@@ -53,16 +53,16 @@ namespace LinBox
 	template<class _Field>
 	class DenseBlockAllocator{
 	public:
-		typedef _Field                 Field;
-		typedef DenseBlock<Field> DenseBlock;
+		typedef _Field                   Field;
+		typedef DenseBlock<Field> DenseBlock_t;
 
 	protected:
-		Field*                  _field;
-		size_t                   _rows; //!< Number of rows of blocks
-		size_t                   _cols; //!< Number of columns of blocks
-		size_t             _block_rows; //!< Number of rows per block
-		size_t             _block_cols; //!< Number of columns per block
-		std::vector<DenseBlock> _store;
+		Field*                    _field;
+		size_t                     _rows; //!< Number of rows of blocks
+		size_t                     _cols; //!< Number of columns of blocks
+		size_t               _block_rows; //!< Number of rows per block
+		size_t               _block_cols; //!< Number of columns per block
+		std::vector<DenseBlock_t> _store;
 
 	public:
 		//////////////////
@@ -92,11 +92,11 @@ namespace LinBox
 			_block_cols(block_n){
 		
 			for(int i = 0; i < _rows * _cols; i++){
-				_store._push_back(DenseBlock(BlasMatrix<Field>(F, block_m, block_n)));
+				_store._push_back(DenseBlock_t(BlasMatrix<Field>(F, block_m, block_n)));
 			}
 		}
 
-		DenseBlock& lookupBlock(size_t i, size_t j){
+		DenseBlock_t& lookupBlock(size_t i, size_t j){
 			size_t offset = (_cols * i) + j;
 			return _store[offset];
 		}	

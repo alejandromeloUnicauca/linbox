@@ -91,6 +91,7 @@ FULLCHECK_TESTS =               \
 	test-blas-domain            \
 	test-block-ring				\
 	test-block-wiedemann		\
+	test-blocked                    \
 	test-butterfly				\
 	test-companion				\
 	test-cradomain				\
@@ -245,6 +246,7 @@ test_blas_domain_SOURCES =              test-blas-domain.C
 test_blas_matrix_SOURCES =              test-blas-matrix.C
 test_block_ring_SOURCES =               test-block-ring.C
 test_block_wiedemann_SOURCES =          test-block-wiedemann.C
+test_blocked_SOURCES =                  test-blocked.C
 test_butterfly_SOURCES = test-butterfly.C test-vector-domain.h test-blackbox.h
 test_charpoly_SOURCES =                 test-charpoly.C
 test_commentator_SOURCES =              test-commentator.C
