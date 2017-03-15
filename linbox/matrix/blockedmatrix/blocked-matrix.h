@@ -46,6 +46,7 @@ namespace LinBox
 		typedef _Field                                     Field;
 		typedef typename Field::Element                  Element;    //!< Element type
 		typedef _Allocator                             Allocator;
+		typedef typename Allocator::Block_t              Block_t;
 		typedef BlockedMatrix<Field,Allocator>            Self_t;    //!< Self type
 		typedef const BlockedMatrix<Field,Allocator> constSelf_t;    //!< Self type
 
@@ -54,6 +55,7 @@ namespace LinBox
                 typedef Self_t                                  blasType;    //!< blas matrix type
 	
 	protected:
+		const Field*  _field;
 		size_t         _rows; //!< Number of rows of blocks
 		size_t         _cols; //!< Number of columns of blocks
 		size_t   _block_rows; //!< Number of rows per block
@@ -79,7 +81,45 @@ namespace LinBox
 			const size_t m,
 			const size_t n,
 			const size_t block_m,
-			const size_t block_n);
+			const size_t block_n) :
+			// Init list begins here.
+			_field(&F),
+			_rows(m),
+			_cols(n),
+			_block_rows(block_m),
+			_block_cols(block_n),
+		        _allocator(F,m,n,block_m,block_n){
+
+			_allocator.allocate();
+		}
+
+		/** Allocates a new zero block matrix of \f$ M \times N\f$ 
+		 * blocks, with each block \f$ m \times n\f$ in dimension.
+		 * @param F
+		 * @param m rows of blocks
+		 * @param n cols of blocks
+		 * @param block_m rows per block
+		 * @param block_n cols per block
+		 * @param allocator preconfigured allocator
+		 *
+		 */
+		BlockedMatrix(
+			const Field& F,
+			const size_t m,
+			const size_t n,
+			const size_t block_m,
+			const size_t block_n,
+			const Allocator& allocator) :
+			// Init list begins here.
+			_field(&F),
+			_rows(m),
+			_cols(n),
+			_block_rows(block_m),
+			_block_cols(block_n),
+			_allocator(allocator){
+
+			_allocator.allocate();
+		}
 
 		//////////////////
 		//  DIMENSIONS  //
@@ -88,33 +128,44 @@ namespace LinBox
 		/** Get the overall number of rows in the matrix.
 		 * @returns Overall number of rows in matrix
 		 */
-		size_t rowdim() const;
+		size_t rowdim() const{
+			return _rows * _block_rows;
+		}
 
 		/** Get the overall number of columns in the matrix.
 		 * @returns Overall number of columns in matrix
 		 */
-		size_t coldim() const;
+		size_t coldim() const{
+			return _cols * _block_cols;
+		}
 
 		/** Get the number of rows per block in the matrix.
 		 * @returns Number of rows per block in matrix
 		 */
-		size_t blockRowdim() const;
+		size_t blockRowdim() const{
+			return _block_rows;
+		}
 
 		/** Get the number of columns per block in the matrix.
 		 * @returns Number of columns per block in matrix
 		 */
-		size_t blockColdim() const;
+		size_t blockColdim() const{
+			return _block_cols;
+		}
 
 		/** Get the number of blocks per row in the matrix.
 		 * @returns Number of blocks per row in matrix
 		 */
-		size_t blocksPerRow() const;
+		size_t blocksPerRow() const{
+			return _rows;
+		}
 
 		/** Get the number of blocks per column in the matrix.
 		 * @returns Number of blocks per column in matrix
 		 */
-		size_t blocksPerColumn() const;
-
+		size_t blocksPerColumn() const{
+			return _cols;
+		}
 
 		//////////////////
 		//    BLOCKS    //
@@ -125,24 +176,27 @@ namespace LinBox
 		 * @param j Block Column number 0...blockColdim() - 1
 		 * @param a_ij Block to set
 		 */
-		template<class _Repr>
-		void setBlock(size_t i, size_t j, const Block<Field,_Repr>& a_ij);
+		void setBlock(size_t i, size_t j, const Block_t& a_ij){
+			_allocator.lookupBlock(i,j) = a_ij;
+		}
 
 		/** Get a writeable reference to the block in the (i, j) position.
 		 * @param i Block Row index of entry
 		 * @param j Block Column index of entry
 		 * @returns Reference to block
 		 */
-		template<class _Repr>
-		Block<Field,_Repr>& refBlock(size_t i, size_t j);
+		Block_t& refBlock(size_t i, size_t j){
+			return _allocator.lookupBlock(i,j);
+		}
 
 		/** Get a read-only reference to the block in the (i, j) position.
 		 * @param i Block Row index
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		template<class _Repr>
-		const Block<Field,_Repr>& getBlock(size_t i, size_t j) const;
+		const Block_t& getBlock(size_t i, size_t j) const{
+			return refBlock(i,j);
+		}
 
 		/** Copy the (i, j) block into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -152,8 +206,10 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		template<class _Repr>
-		Block<Field,_Repr>& getBlock(Block<Field,_Repr>& x, size_t i, size_t j) const;
+		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
+			x = getBlock(i,j);
+			return x;
+		}
 
 		//////////////////
 		//   ELEMENTS   //
@@ -164,21 +220,35 @@ namespace LinBox
 		 * @param j Column number 0...coldim () - 1
 		 * @param a_ij Element to set
 		 */
-		void setEntry(size_t i, size_t j, const Element& a_ij);
+		void setEntry(size_t i, size_t j, const Element& a_ij){
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_cols;
+			i = i % _block_rows;
+			j = j % _block_cols;
+			(*refBlock(block_i,block_j)).setEntry(i,j,a_ij);
+		}
 
 		/** Get a writeable reference to the entry in the (i, j) position.
 		 * @param i Row index of entry
 		 * @param j Column index of entry
 		 * @returns Reference to matrix entry
 		 */
-		Element& refEntry(size_t i, size_t j);
+		Element& refEntry(size_t i, size_t j){
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_cols;
+			i = i % _block_rows;
+			j = j % _block_cols;
+			return (*refBlock(block_i,block_j)).refEntry(i,j);	
+		}
 
 		/** Get a read-only reference to the entry in the (i, j) position.
 		 * @param i Row index
 		 * @param j Column index
 		 * @returns Const reference to matrix entry
 		 */
-		const Element& getEntry(size_t i, size_t j) const;
+		const Element& getEntry(size_t i, size_t j) const{
+			return refEntry(i,j);
+		}
 
 		/** Copy the (i, j) entry into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -188,7 +258,10 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Reference to x
 		 */
-		Element& getEntry(Element& x, size_t i, size_t j) const;
+		Element& getEntry(Element& x, size_t i, size_t j) const{
+			x = getEntry(i,j);
+			return x;
+		}
 
 	}; // end of class BlockedMatrix
 
@@ -201,6 +274,7 @@ namespace LinBox
 		typedef typename _BlockedMatrix::Field                 Field;
 		typedef typename Field::Element                      Element;
 		typedef typename _BlockedMatrix::Allocator         Allocator;
+		typedef typename Allocator::Block_t                  Block_t;	
 		typedef AlignedBlockedSubmatrix<_BlockedMatrix>       Self_t;
 		typedef const Self_t                             constSelf_t;
 		typedef Self_t                                 subMatrixType;
@@ -235,14 +309,30 @@ namespace LinBox
 			const size_t rowbeg,
 			const size_t colbeg,
 			const size_t m,
-			const size_t n);
+			const size_t n) :
+			// Init list begins here.
+			_rows(m),
+			_cols(n),
+			_block_rows(M.blockRowdim()),
+			_block_cols(M.blockColdim()),
+			_r0(rowbeg),
+			_c0(colbeg),
+			_Mat(M){}
 
 		AlignedBlockedSubmatrix(
 			matrixType& M,
 			const size_t rowbeg,
 			const size_t colbeg,
 			const size_t m,
-			const size_t n);
+			const size_t n) :
+			// Init list begins here.
+			_rows(m),
+			_cols(n),
+			_block_rows(M.blockRowdim()),
+			_block_cols(M.blockColdim()),
+			_r0(rowbeg),
+			_c0(colbeg),
+			_Mat(M){}
 
 		//////////////////
 		//  DIMENSIONS  //
@@ -251,32 +341,44 @@ namespace LinBox
 		/** Get the overall number of rows in the submatrix.
 		 * @returns Overall number of rows in submatrix
 		 */
-		size_t rowdim() const;
+		size_t rowdim() const{
+			return _rows * _block_rows;
+		}
 
 		/** Get the overall number of columns in the submatrix.
 		 * @returns Overall number of columns in submatrix
 		 */
-		size_t coldim() const;
+		size_t coldim() const{
+			return _cols * _block_cols;
+		}
 
 		/** Get the number of rows per block in the submatrix.
 		 * @returns Number of rows per block in submatrix
 		 */
-		size_t blockRowdim() const;
+		size_t blockRowdim() const{
+			return _block_rows;
+		}
 
 		/** Get the number of columns per block in the submatrix.
 		 * @returns Number of columns per block in submatrix
 		 */
-		size_t blockColdim() const;
+		size_t blockColdim() const{
+			return _block_cols;
+		}
 
 		/** Get the number of blocks per row in the submatrix.
 		 * @returns Number of blocks per row in submatrix
 		 */
-		size_t blocksPerRow() const;
+		size_t blocksPerRow() const{
+			return _rows;
+		}
 
 		/** Get the number of blocks per column in the submatrix.
 		 * @returns Number of blocks per column in submatrix
 		 */
-		size_t blocksPerColumn() const;
+		size_t blocksPerColumn() const{
+			return _cols;
+		}
 
 		//////////////////
 		//    BLOCKS    //
@@ -287,24 +389,27 @@ namespace LinBox
 		 * @param j Block Column number 0...blockColdim() - 1
 		 * @param a_ij Block to set
 		 */
-		template<class _Repr>
-		void setBlock(size_t i, size_t j, const Block<Field,_Repr>& a_ij);
+		void setBlock(size_t i, size_t j, const Block_t& a_ij){
+			_Mat.setBlock(_r0 + i, _c0 + j, a_ij);
+		}
 
 		/** Get a writeable reference to the block in the (i, j) position.
 		 * @param i Block Row index of entry
 		 * @param j Block Column index of entry
 		 * @returns Reference to block
 		 */
-		template<class _Repr>
-		Block<Field,_Repr>& refBlock(size_t i, size_t j);
+		Block_t& refBlock(size_t i, size_t j){
+			return _Mat.refBlock(_r0 + i, _c0 + j);
+		}
 
 		/** Get a read-only reference to the block in the (i, j) position.
 		 * @param i Block Row index
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		template<class _Repr>
-		const Block<Field,_Repr>& getBlock(size_t i, size_t j) const;
+		const Block_t& getBlock(size_t i, size_t j) const{
+			return refBlock(i,j);
+		}
 
 		/** Copy the (i, j) block into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -314,8 +419,10 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		template<class _Repr>
-		Block<Field,_Repr>& getBlock(Block<Field,_Repr>& x, size_t i, size_t j) const;
+		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
+			x = getBlock(i,j);
+			return x;
+		}
 
 		//////////////////
 		//   ELEMENTS   //
@@ -326,21 +433,35 @@ namespace LinBox
 		 * @param j Column number 0...coldim () - 1
 		 * @param a_ij Element to set
 		 */
-		void setEntry(size_t i, size_t j, const Element& a_ij);
+		void setEntry(size_t i, size_t j, const Element& a_ij){
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_rows;
+			i = i % _block_rows;
+			j = j % _block_rows;
+			(*refBlock(_r0 + block_i, _c0 + block_j)).setEntry(i,j,a_ij);
+		}
 
 		/** Get a writeable reference to the entry in the (i, j) position.
 		 * @param i Row index of entry
 		 * @param j Column index of entry
 		 * @returns Reference to matrix entry
 		 */
-		Element& refEntry(size_t i, size_t j);
+		Element& refEntry(size_t i, size_t j){
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_rows;
+			i = i % _block_rows;
+			j = j % _block_rows;
+			return (*refBlock(_r0 + block_i, _c0 + block_j)).refEntry(i,j);
+		}
 
 		/** Get a read-only reference to the entry in the (i, j) position.
 		 * @param i Row index
 		 * @param j Column index
 		 * @returns Const reference to matrix entry
 		 */
-		const Element& getEntry(size_t i, size_t j) const;
+		const Element& getEntry(size_t i, size_t j) const{
+			return refEntry(i,j);
+		}
 
 		/** Copy the (i, j) entry into x, and return a reference to x.
 		 * This form is more in the Linbox style and is provided for interface
@@ -350,7 +471,10 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Reference to x
 		 */
-		Element& getEntry(Element& x, size_t i, size_t j) const;
+		Element& getEntry(Element& x, size_t i, size_t j) const{
+			x = getEntry(i,j);
+			return x;
+		}
 
 	}; // end of class AlignedBlockedSubmatrix
 } // end of namespace LinBox

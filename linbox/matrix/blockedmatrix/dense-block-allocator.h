@@ -44,7 +44,18 @@ namespace LinBox
 	 *
 	 */
 	template<class _Field>
-	class DenseBlock : public Block<_Field, BlasMatrix<_Field> >{
+	class DenseBlock : public Block<_Field>{
+	public:
+		typedef BlasMatrix<_Field> Repr;
+	protected:
+		Repr _repr;
+	public:
+		DenseBlock(const BlasMatrix<_Field>& repr) :
+			_repr(repr){}
+
+		virtual BlasMatrix<_Field>& operator*(){
+			return _repr;
+		}
 	}; // end of class DenseBlock
 
 	/**
@@ -53,16 +64,16 @@ namespace LinBox
 	template<class _Field>
 	class DenseBlockAllocator{
 	public:
-		typedef _Field                   Field;
-		typedef DenseBlock<Field> DenseBlock_t;
+		typedef _Field              Field;
+		typedef DenseBlock<Field> Block_t;
 
 	protected:
-		Field*                    _field;
+		const Field*              _field;
 		size_t                     _rows; //!< Number of rows of blocks
 		size_t                     _cols; //!< Number of columns of blocks
 		size_t               _block_rows; //!< Number of rows per block
 		size_t               _block_cols; //!< Number of columns per block
-		std::vector<DenseBlock_t> _store;
+		std::vector<Block_t> _store;
 
 	public:
 		//////////////////
@@ -89,14 +100,16 @@ namespace LinBox
 			_rows(m),
 			_cols(n),
 			_block_rows(block_m),
-			_block_cols(block_n){
-		
-			for(int i = 0; i < _rows * _cols; i++){
-				_store._push_back(DenseBlock_t(BlasMatrix<Field>(F, block_m, block_n)));
+			_block_cols(block_n){}
+
+		void allocate(){
+			for(unsigned int i = 0; i < _rows * _cols; i++){
+				_store.push_back(Block_t(BlasMatrix<Field>(*_field, _block_rows, _block_cols)));
 			}
+
 		}
 
-		DenseBlock_t& lookupBlock(size_t i, size_t j){
+		Block_t& lookupBlock(size_t i, size_t j){
 			size_t offset = (_cols * i) + j;
 			return _store[offset];
 		}	

@@ -1,4 +1,3 @@
-
 /* tests/test-blocked.C
  * Copyright (C) 2017 Matthew Wezowicz
  *
@@ -45,16 +44,41 @@
 
 using namespace LinBox;
 
-int main (int argc, char **argv)
-{
+int main (int argc, char **argv){
 	bool pass = true;
+	static size_t n = 128;
+	static int q = 100003U;
 
-	commentator().start("Blocked matrix test suite", "BlockedMatrix");
+	typedef Givaro::Modular<double> Field;
+	Field F(q);
 
 	commentator().getMessageClass(INTERNAL_DESCRIPTION).setMaxDepth (5);
 	commentator().getMessageClass(INTERNAL_DESCRIPTION).setMaxDetailLevel(Commentator::LEVEL_UNIMPORTANT);
 
-	//TODO
+	commentator().start("Blocked matrix test suite", "BlockedMatrix");
+	
+	BlockedMatrix<Field, DenseBlockAllocator<Field> > A1(F,n,n,n/2,n/2);
+	BlockedMatrix<Field, DenseBlockAllocator<Field> > B1(F,n,n,n/2,n/2);
+	BlockedMatrix<Field, DenseBlockAllocator<Field> > C1(F,n,n,n/2,n/2);
+
+	BlasMatrix<Field> A2(F,n,n);
+	BlasMatrix<Field> B2(F,n,n);
+	BlasMatrix<Field> C2(F,n,n);
+
+	Field::Element tmp;
+	Field::RandIter G(F);
+
+	for(size_t i = 0; i < n; i++){
+		for(size_t j = 0; j < n; j++){
+			tmp = G.random();
+			A1.setEntry(i,j,tmp);
+			A2.setEntry(i,j,tmp);
+
+			tmp = G.random();
+			B1.setEntry(i,j,tmp);
+			B2.setEntry(i,j,tmp);
+		}
+	}
 
 	commentator().stop("Blocked matrix test suite");
 	return pass ? 0 : -1;

@@ -38,13 +38,9 @@ namespace LinBox
 	/**
 	 *
 	 */
-	template<class _Field, class _Repr>
+	template<class _Field>
 	class Block{
 	public:
-		typedef _Repr Repr; //!< Represenation type
-		Repr         _repr; //!< Representation
-
-		Block(const Repr& repr) : _repr(repr){}
 	}; // end of class Block
 } // end of namespace LinBox
 
