@@ -41,6 +41,7 @@ namespace LinBox
 	template<class _Field>
 	class Block{
 	public:
+		virtual ~Block(){}
 	}; // end of class Block
 } // end of namespace LinBox
 
