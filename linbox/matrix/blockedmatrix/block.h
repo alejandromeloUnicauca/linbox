@@ -30,6 +30,8 @@
  *
  */
 
+#include <utitlity>
+
 #ifndef __LINBOX_matrix_blockedmatrix_block_H
 #define __LINBOX_matrix_blockedmatrix_block_H
 
@@ -38,10 +40,169 @@ namespace LinBox
 	/**
 	 *
 	 */
+	enum BlockType{
+		DENSE
+	};
+
+	/**
+	 *
+	 */
+	class BlockCoord{
+	protected:
+		size_t row;
+		size_t col;
+
+		BlockCoord();
+	public:
+		/**
+		 *
+		 */
+		BlockCoord(const size_t i, const size_t j) :
+			// Init list begins here.
+			row(i),
+			col(j){}
+
+		/**
+		 *
+		 */
+		BlockCoord(const BlockCoord& rhs) :
+			// Init list begins here.
+			row(rhs.row),
+			col(rhs.col){}
+
+		/**
+		 *
+		 */
+		BlockCoord& operator=(const BlockCoord& rhs){
+			row = rhs.row;
+			col = rhs.col;
+			return *this;
+		}
+
+		/**
+		 *
+		 */
+		virtual ~BlockCoord(){}
+
+		/**
+		 *
+		 */
+		const size_t getRow(){
+			return row;
+		}
+
+		/**
+		 *
+		 */
+		const size_t getCol(){
+			return col;
+		}
+
+		/**
+		 *
+		 */
+		std::pair<size_t, size_t> getIJ(){
+			return std::pair<size_t, size_t>(row, col);
+		}
+
+		/**
+		 *
+		 */
+		bool operator==(const BlockCoord& lhs, const BlockCoord& rhs){
+			return (lhs.row == rhs.row) && (lhs.col == rhs.col);
+		}
+
+		/**
+		 *
+		 */
+		bool operator!=(const BlockCoord& lhs, const BlockCoord& rhs){
+			return !(lhs == rhs);
+		}
+	}; // end of class BlockCoord
+
+	/**
+	 *
+	 */
 	template<class _Field>
 	class Block{
 	public:
+		typedef _Field Field;
+		typedef typename Field::Element Element;
+
+	protected:
+		BlockType blockType;
+		BlockCoord blockCoord;
+		void* _owner;
+
+		Block();
+	public:
+		/**
+		 *
+		 */
+		Block(BlockType type, BlockCoord coord, void* owner) :
+			// Init list begins here.
+			blockType(type),
+			blockCoord(coord),
+			_owner(owner){}
+
+		/**
+		 *
+		 */
+		Block(BlockType type, size_t i, size_t j, void* owner) :
+			// Init list begins here.
+			blockType(type),
+			blockCoord(i,j),
+			_owner(owner){}
+
+		/**
+		 *
+		 */
+		Block(const Block& rhs) :
+			// Init list begins here.
+			blockType(rhs.blockType),
+			blockCoord(rhs.blockCoord),
+			_owner(rhs.owner){}
+
+		/**
+		 *
+		 */
+		Block& operator=(const Block& rhs);
+
+		/**
+		 *
+		 */
 		virtual ~Block(){}
+
+		/**
+		 *
+		 */
+		const BlockType getBlockType(){
+			return blockType;
+		}
+
+		/**
+		 *
+		 */
+		const BlockCoord& getBlockCoord(){
+			return blockCoord;
+		}
+
+		/**
+		 *
+		 */
+		bool operator==(const Block& lhs, const Block& lhs){
+			bool same = lhs.blockType == rhs.blockType;
+			same &= lhs.blockCoord == rhs.blockCoord;
+			same &= lhs._owner == rhs._owner;
+			return same;
+		}
+
+		/**
+		 *
+		 */
+		bool operator!=(const Block& lhs, const Block& rhs){
+			return !(lhs == rhs);
+		}
 	}; // end of class Block
 } // end of namespace LinBox
 

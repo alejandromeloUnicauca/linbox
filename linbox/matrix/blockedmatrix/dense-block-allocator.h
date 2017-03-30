@@ -40,21 +40,71 @@
 
 namespace LinBox
 {
+	// Forward declaration.
+	template<class _Field>
+	class DenseBlockAllocator;
+
+
 	/**
 	 *
 	 */
 	template<class _Field>
 	class DenseBlock : public Block<_Field>{
 	public:
-		typedef BlasMatrix<_Field> Repr;
+		typedef _Field                  Field;
+		typedef typename Field::Element Element;
+		typedef BlasMatrix<Field>       Repr;
+
 	protected:
 		Repr* _repr;
-	public:
-		DenseBlock(Repr* repr) :
-			_repr(repr){}
 
+	public:
+		/**
+		 *
+		 */
+		DenseBlock(
+			BlockType type,
+			BlockCoord coord,
+			void* owner,
+			Repr* repr) :
+			// Init list begins here.
+			Block(type, coord, owner),
+			_repr(repr){}
+		/**
+		 *
+		 */
+		DenseBlock(
+			BlockType type,
+			size_t i,
+			size_t j,
+			void* owner,
+			Repr* repr) :
+			// Init list begins here.
+			Block(type, i, j, owner),
+			_repr(repr){}
+		/**
+		 *
+		 */
+		DenseBlock(const DenseBlock& rhs) :
+			// Init list begins here.
+			Block(rhs),
+			_repr(rhs._repr){}
+		/**
+		 *
+		 */
+		DenseBlock& operator=(const DenseBlock& rhs){
+			_repr->copy(*(rhs._repr));
+			return *this;
+		}
+
+		/**
+		 *
+		 */
 		virtual ~DenseBlock(){}
 
+		/**
+		 *
+		 */
 		virtual Repr& operator*(){
 			return *_repr;
 		}
@@ -69,14 +119,15 @@ namespace LinBox
 	public:
 		typedef _Field              Field;
 		typedef DenseBlock<Field> Block_t;
+		typedef BlasMatrix<Field>    Repr;
 
 	protected:
-		const Field*         _field;
-		size_t                _rows; //!< Number of rows of blocks
-		size_t                _cols; //!< Number of columns of blocks
-		size_t          _block_rows; //!< Number of rows per block
-		size_t          _block_cols; //!< Number of columns per block
-		std::vector<Block_t> _store;
+		const Field*       _field;
+		size_t              _rows; //!< Number of rows of blocks
+		size_t              _cols; //!< Number of columns of blocks
+		size_t        _block_rows; //!< Number of rows per block
+		size_t        _block_cols; //!< Number of columns per block
+		std::vector<Repr*> _store;
 
 	public:
 		//////////////////
@@ -111,25 +162,22 @@ namespace LinBox
 
 		void allocate(){
 			for(size_t i = 0; i < _rows * _cols; i++){
-				BlasMatrix<Field>* matrix = new BlasMatrix<Field>(*_field, _block_rows, _block_cols);
-				DenseBlock<Field> block = DenseBlock<Field>(matrix);
-				_store.push_back(block);
+				Repr* matrix = new Repr(*_field, _block_rows, _block_cols);
+				_store.push_back(matrix);
 			}
 		}
 
 		void deallocate(){
 			for(size_t i = 0; i < _rows * _cols; i++){
-				DenseBlock<Field> block = _store[i];
-				BlasMatrix<Field>* matrix = &(*block);
-
+				Repr* matrix = _store[i];
 				delete matrix;
 			}
 		}
 
 
-		Block_t& lookupBlock(size_t i, size_t j){
+		Block_t lookupBlock(size_t i, size_t j){
 			size_t offset = (_cols * i) + j;
-			return _store[offset];
+			return Block_t(BlockType::DENSE, i, j, this, _store[offset]);
 		}	
 
 	}; // end of class DenseBlockAllocator
