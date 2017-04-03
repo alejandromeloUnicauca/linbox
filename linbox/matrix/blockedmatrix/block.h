@@ -30,7 +30,7 @@
  *
  */
 
-#include <utitlity>
+#include <utility>
 
 #ifndef __LINBOX_matrix_blockedmatrix_block_H
 #define __LINBOX_matrix_blockedmatrix_block_H
@@ -108,15 +108,15 @@ namespace LinBox
 		/**
 		 *
 		 */
-		bool operator==(const BlockCoord& lhs, const BlockCoord& rhs){
-			return (lhs.row == rhs.row) && (lhs.col == rhs.col);
+		bool operator==(const BlockCoord& rhs){
+			return (row == rhs.row) && (col == rhs.col);
 		}
 
 		/**
 		 *
 		 */
-		bool operator!=(const BlockCoord& lhs, const BlockCoord& rhs){
-			return !(lhs == rhs);
+		bool operator!=(const BlockCoord& rhs){
+			return !(*this == rhs);
 		}
 	}; // end of class BlockCoord
 
@@ -190,18 +190,18 @@ namespace LinBox
 		/**
 		 *
 		 */
-		bool operator==(const Block& lhs, const Block& lhs){
-			bool same = lhs.blockType == rhs.blockType;
-			same &= lhs.blockCoord == rhs.blockCoord;
-			same &= lhs._owner == rhs._owner;
+		bool operator==(const Block& rhs){
+			bool same = blockType == rhs.blockType;
+			same &= blockCoord == rhs.blockCoord;
+			same &= _owner == rhs._owner;
 			return same;
 		}
 
 		/**
 		 *
 		 */
-		bool operator!=(const Block& lhs, const Block& rhs){
-			return !(lhs == rhs);
+		bool operator!=(const Block& rhs){
+			return !(*this == rhs);
 		}
 	}; // end of class Block
 } // end of namespace LinBox

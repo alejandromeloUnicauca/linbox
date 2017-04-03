@@ -194,7 +194,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		const Block_t& getBlock(size_t i, size_t j) const{
+		const Block_t& getBlock(size_t i, size_t j){
 			return refBlock(i,j);
 		}
 
@@ -206,7 +206,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
+		Block_t& getBlock(Block_t& x, size_t i, size_t j){
 			x = getBlock(i,j);
 			return x;
 		}
@@ -246,7 +246,7 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Const reference to matrix entry
 		 */
-		const Element& getEntry(size_t i, size_t j) const{
+		const Element& getEntry(size_t i, size_t j){
 			return refEntry(i,j);
 		}
 
@@ -258,9 +258,53 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Reference to x
 		 */
-		Element& getEntry(Element& x, size_t i, size_t j) const{
+		Element& getEntry(Element& x, size_t i, size_t j){
 			x = getEntry(i,j);
 			return x;
+		}
+
+		//////////////////
+		//   UTILITIES  //
+		//////////////////
+
+		/** Copy all elements of the input matrix into the blocked matrix.
+		 * This assumes that the dimensions of the input are less than or
+		 * the same as the dimensions of the blocked matrix.
+		 * @param m Input matrix
+		 * @returns Reference to this blocked matrix
+		 */
+		template<class _M>
+		Self_t& copyFromMatrix(const _M& m){
+			size_t rows = m.rowdim();
+			size_t cols = m.coldim();
+
+			for(size_t i = 0; i < rows; i++){
+				for(size_t j = 0; j < cols; j++){
+					setEntry(i,j,m.getEntry(i,j));
+				}
+			}
+
+			return *this;
+		}
+
+		/** Copy all elements of the blocked matrix into the provided matrix.
+		 * This assumes that the dimensions of the blocked matrix are
+		 * less than or the same as the dimensions of the provided matrix.
+		 * @param m A matrix
+		 * @returns Reference to this blocked matrix
+		 */
+		template<class _M>
+		Self_t& copyToMatrix(_M& m){
+			size_t rows = rowdim();
+			size_t cols = coldim();
+
+			for(size_t i = 0; i < rows; i++){
+				for(size_t j = 0; j < cols; j++){
+					m.setEntry(i,j,getEntry(i,j));
+				}
+			}
+
+			return *this;
 		}
 
 	}; // end of class BlockedMatrix
@@ -407,7 +451,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		const Block_t& getBlock(size_t i, size_t j) const{
+		const Block_t& getBlock(size_t i, size_t j){
 			return refBlock(i,j);
 		}
 
@@ -419,7 +463,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
+		Block_t& getBlock(Block_t& x, size_t i, size_t j){
 			x = getBlock(i,j);
 			return x;
 		}

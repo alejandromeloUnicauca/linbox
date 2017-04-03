@@ -68,7 +68,7 @@ namespace LinBox
 			void* owner,
 			Repr* repr) :
 			// Init list begins here.
-			Block(type, coord, owner),
+			Block<Field>::Block(type, coord, owner),
 			_repr(repr){}
 		/**
 		 *
@@ -80,14 +80,14 @@ namespace LinBox
 			void* owner,
 			Repr* repr) :
 			// Init list begins here.
-			Block(type, i, j, owner),
+			Block<Field>::Block(type, i, j, owner),
 			_repr(repr){}
 		/**
 		 *
 		 */
 		DenseBlock(const DenseBlock& rhs) :
 			// Init list begins here.
-			Block(rhs),
+			Block<Field>::Block(rhs),
 			_repr(rhs._repr){}
 		/**
 		 *
@@ -105,7 +105,7 @@ namespace LinBox
 		/**
 		 *
 		 */
-		virtual Repr& operator*(){
+		virtual Repr& operator*() const{
 			return *_repr;
 		}
 
@@ -122,12 +122,13 @@ namespace LinBox
 		typedef BlasMatrix<Field>    Repr;
 
 	protected:
-		const Field*       _field;
-		size_t              _rows; //!< Number of rows of blocks
-		size_t              _cols; //!< Number of columns of blocks
-		size_t        _block_rows; //!< Number of rows per block
-		size_t        _block_cols; //!< Number of columns per block
-		std::vector<Repr*> _store;
+		const Field*               _field;
+		size_t                      _rows; //!< Number of rows of blocks
+		size_t                      _cols; //!< Number of columns of blocks
+		size_t                _block_rows; //!< Number of rows per block
+		size_t                _block_cols; //!< Number of columns per block
+		std::vector<Block_t*> block_store;
+		std::vector<Repr*>     repr_store;
 
 	public:
 		//////////////////
@@ -161,23 +162,37 @@ namespace LinBox
 		}
 
 		void allocate(){
-			for(size_t i = 0; i < _rows * _cols; i++){
-				Repr* matrix = new Repr(*_field, _block_rows, _block_cols);
-				_store.push_back(matrix);
+			for(size_t i = 0; i < _rows; i++){
+				for(size_t j = 0; j < _cols; j++){
+					Repr* matrix =
+						new Repr(*_field,
+							 _block_rows,
+							 _block_cols);
+					Block_t* block =
+						new Block_t(BlockType::DENSE,
+							    i,
+							    j,
+							    this,
+							    matrix);
+					repr_store.push_back(matrix);
+					block_store.push_back(block);
+				}
 			}
 		}
 
 		void deallocate(){
 			for(size_t i = 0; i < _rows * _cols; i++){
-				Repr* matrix = _store[i];
+				Repr* matrix = repr_store[i];
+				Block_t* block = block_store[i];
 				delete matrix;
+				delete block;
 			}
 		}
 
 
-		Block_t lookupBlock(size_t i, size_t j){
+		Block_t& lookupBlock(size_t i, size_t j){
 			size_t offset = (_cols * i) + j;
-			return Block_t(BlockType::DENSE, i, j, this, _store[offset]);
+			return *block_store[offset];
 		}	
 
 	}; // end of class DenseBlockAllocator
