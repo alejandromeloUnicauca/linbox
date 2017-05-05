@@ -265,8 +265,8 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		const Block_t& getBlock(size_t i, size_t j){
-			return refBlock(i,j);
+		const Block_t& getBlock(size_t i, size_t j) const{
+			return _allocator.lookupBlock(i,j);
 		}
 
 		/** Copy the (i, j) block into x, and return a reference to x.
@@ -277,7 +277,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		Block_t& getBlock(Block_t& x, size_t i, size_t j){
+		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
 			x = getBlock(i,j);
 			return x;
 		}
@@ -317,8 +317,12 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Const reference to matrix entry
 		 */
-		const Element& getEntry(size_t i, size_t j){
-			return refEntry(i,j);
+		const Element& getEntry(size_t i, size_t j) const{
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_cols;
+			i = i % _block_rows;
+			j = j % _block_cols;
+			return (*(getBlock(block_i,block_j))).getEntry(i,j);
 		}
 
 		/** Copy the (i, j) entry into x, and return a reference to x.
@@ -329,7 +333,7 @@ namespace LinBox
 		 * @param j Column index
 		 * @returns Reference to x
 		 */
-		Element& getEntry(Element& x, size_t i, size_t j){
+		Element& getEntry(Element& x, size_t i, size_t j) const{
 			x = getEntry(i,j);
 			return x;
 		}
@@ -535,8 +539,8 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Const reference to block
 		 */
-		const Block_t& getBlock(size_t i, size_t j){
-			return refBlock(i,j);
+		const Block_t& getBlock(size_t i, size_t j) const{
+			return _Mat.refBlock(_r0 + i, _c0 + j);
 		}
 
 		/** Copy the (i, j) block into x, and return a reference to x.
@@ -547,7 +551,7 @@ namespace LinBox
 		 * @param j Block Column index
 		 * @returns Reference to x
 		 */
-		Block_t& getBlock(Block_t& x, size_t i, size_t j){
+		Block_t& getBlock(Block_t& x, size_t i, size_t j) const{
 			x = getBlock(i,j);
 			return x;
 		}
@@ -588,7 +592,11 @@ namespace LinBox
 		 * @returns Const reference to matrix entry
 		 */
 		const Element& getEntry(size_t i, size_t j) const{
-			return refEntry(i,j);
+			size_t block_i = i / _block_rows;
+			size_t block_j = j / _block_rows;
+			i = i % _block_rows;
+			j = j % _block_rows;
+			return (*(getBlock(_r0 + block_i, _c0 + block_j))).getEntry(i,j);
 		}
 
 		/** Copy the (i, j) entry into x, and return a reference to x.

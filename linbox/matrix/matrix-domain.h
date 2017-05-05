@@ -71,7 +71,7 @@ namespace LinBox {
 #include "matrixdomain/plain-domain.h"
 
 #include "matrixdomain/opencl-domain.h"
-
+#include "matrixdomain/blocked-domain.h"
 
 #endif // __LINBOX_matrix_matrix_domain_H
 

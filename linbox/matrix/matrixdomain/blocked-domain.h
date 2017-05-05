@@ -32,7 +32,8 @@
 #ifndef __LINBOX_matrix_matrixdomain_blockeddomain_H
 #define __LINBOX_matrix_matrixdomain_blockeddomain_H
 
-#include "linbox/matrix/matrixdomain/blas-matrix-domain.h"
+#include "linbox/matrix/factorized-matrix.h"
+#include "linbox/matrix/blockedmatrix/blocked-matrix.h"
 #include "linbox/matrix/matrixdomain/blas-matrix-domain.h"
 
 namespace LinBox{
@@ -53,7 +54,7 @@ namespace LinBox{
 	public:
 
 		//! Constructor of OpenCLDomain.
-		BlockedMatrixDomain(const Field& F) : _F(F), BMD(&F){}
+		BlockedMatrixDomain(const Field& F) : _F(F), BMD(F){}
 
 		//! Copy constructor
 		BlockedMatrixDomain(const BlockedMatrixDomain<Field> & BlockMD) :
@@ -70,13 +71,13 @@ namespace LinBox{
 		}
 
 		/*
-		 * Basics operation available matrix respecting BlasMatrix interface
+		 * Basic operation available matrix respecting BlasMatrix interface
 		 */
 
 		//! addition.
 		//! C = A+B
 		template <class Operand1, class Operand2, class Operand3>
-		Operand1& add(Operand1& C, const Operand2& A, const Operand3& B) const{
+		Operand1& add(Operand1& C, const Operand2& A, const Operand3& B){
 			for(size_t i = 0; i < C.blockRowdim(); i++){
 				for(size_t j = 0; j < C.blockColdim(); j++){
 					BMD.add(*(C.refBlock(i,j)),
@@ -270,7 +271,7 @@ namespace LinBox{
 					}
 				}
 			}
-			return C;
+			return D;
 
 		}
 
@@ -299,7 +300,7 @@ namespace LinBox{
 		 */
 		template <class Operand1>
 		Operand1& LUFactorize(Operand1& A){
-			size_t n = A.getBlockColdim() - 1;
+			size_t n = A.blockColdim() - 1;
 			
 			for(size_t i = 0; i < n - 1; i++){
 				AlignedBlockedSubmatrix<Operand1> M(A,i,i,n,n);
@@ -314,7 +315,7 @@ namespace LinBox{
 	private:
 		template <class Operand1>
 		Operand1& LUStep(Operand1& M){
-			size_t n = M.getBlockColdim() - 1;
+			size_t n = M.blockColdim() - 1;
 
 			LQUPMatrix<Field> A(*(M.refBlock(0,0)));
 

@@ -181,13 +181,20 @@ namespace LinBox
 			for(size_t i = 0; i < _rows * _cols; i++){
 				Repr* matrix = repr_store[i];
 				Block_t* block = block_store[i];
-				delete matrix;
-				delete block;
+			
+				if(matrix != NULL){ delete matrix; }
+				if(block != NULL){ delete block; }
+				
+				repr_store[i] = NULL;
+				block_store[i] = NULL;
 			}
+
+			repr_store.resize(0);
+			block_store.resize(0);
 		}
 
 
-		Block_t& lookupBlock(size_t i, size_t j){
+		Block_t& lookupBlock(size_t i, size_t j) const{
 			size_t offset = (_cols * i) + j;
 			return *block_store[offset];
 		}	
