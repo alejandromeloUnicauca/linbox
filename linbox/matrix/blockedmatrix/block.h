@@ -41,7 +41,8 @@ namespace LinBox
 	 *
 	 */
 	enum BlockType{
-		DENSE
+		DENSE,
+		SPARSE
 	};
 
 	/**

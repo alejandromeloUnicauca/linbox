@@ -63,24 +63,22 @@ namespace LinBox
 		 *
 		 */
 		DenseBlock(
-			BlockType type,
 			BlockCoord coord,
 			void* owner,
 			Repr* repr) :
 			// Init list begins here.
-			Block<Field>::Block(type, coord, owner),
+			Block<Field>::Block(BlockType::DENSE, coord, owner),
 			_repr(repr){}
 		/**
 		 *
 		 */
 		DenseBlock(
-			BlockType type,
 			size_t i,
 			size_t j,
 			void* owner,
 			Repr* repr) :
 			// Init list begins here.
-			Block<Field>::Block(type, i, j, owner),
+			Block<Field>::Block(BlockType::DENSE, i, j, owner),
 			_repr(repr){}
 		/**
 		 *
@@ -169,8 +167,7 @@ namespace LinBox
 							 _block_rows,
 							 _block_cols);
 					Block_t* block =
-						new Block_t(BlockType::DENSE,
-							    i,
+						new Block_t(i,
 							    j,
 							    this,
 							    matrix);

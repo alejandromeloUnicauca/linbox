@@ -121,6 +121,77 @@ namespace LinBox
 			_allocator.allocate();
 		}
 
+		/** Allocates a new zero block matrix of \f$ M \times N\f$ 
+		 * blocks, with each block \f$ m \times n\f$ in dimension,
+		 * and copys the content of the provided block matrix.
+		 *
+		 * Will not work properly with preconfigured allocators.
+		 *
+		 * @param rhs block matrix to copy.
+		 *
+		 */
+		BlockedMatrix(const BlockedMatrix& rhs) :
+			// Init list begins here.
+			_field(rhs._field),
+			_rows(rhs._rows),
+			_cols(rhs._cols),
+			_block_rows(rhs._block_rows),
+			_block_cols(rhs._block_cols),
+			_allocator(*_field,_rows,_cols,_block_rows,_block_cols){
+
+			_allocator.allocate();
+
+			for(size_t i = 0; i < _rows; i++){
+				for(size_t j = 0; j < _cols; j++){
+					setBlock(i,j,rhs.getBlock(i,j));
+				}
+			}
+		}
+
+		/**
+		 *
+		 */
+		BlockedMatrix& operator=(const BlockedMatrix& rhs){
+			if(this == &rhs){
+				return *this;
+			}
+
+			bool same = *_field == *(rhs._field);
+			same &= _rows == rhs._rows;
+			same &= _cols == rhs._cols;
+			same &= _block_rows == rhs._block_rows;
+			same &= _block_cols == rhs._block_cols;
+
+			if(!same){
+				_allocator.deallocate();
+
+				_field = rhs._field;
+				_rows = rhs._rows;
+				_cols = rhs._cols;
+				_block_rows = rhs._block_rows;
+				_block_cols = rhs._block_cols;
+
+				_allocator = Allocator(*_field,
+						       _rows,
+						       _cols,
+						       _block_rows,
+						       _block_cols);
+			}
+
+			for(size_t i = 0; i < _rows; i++){
+				for(size_t j = 0; j < _cols; j++){
+					setBlock(i,j,rhs.getBlock(i,j));
+				}
+			}
+		}
+
+		/**
+		 *
+		 */
+		~BlockedMatrix(){
+			_allocator.deallocate();
+		}
+
 		//////////////////
 		//  DIMENSIONS  //
 		//////////////////
@@ -139,32 +210,32 @@ namespace LinBox
 			return _cols * _block_cols;
 		}
 
+		/** Get the number of block rows in the matrix.
+		 * @returns Number of block rows in matrix
+		 */
+		size_t blockRowdim() const{
+			return _rows;
+		}
+
+		/** Get the number of block columns in the matrix.
+		 * @returns Number of block columns in matrix
+		 */
+		size_t blockColdim() const{
+			return _cols;
+		}
+
 		/** Get the number of rows per block in the matrix.
 		 * @returns Number of rows per block in matrix
 		 */
-		size_t blockRowdim() const{
+		size_t rowsPerBlock() const{
 			return _block_rows;
 		}
 
 		/** Get the number of columns per block in the matrix.
 		 * @returns Number of columns per block in matrix
 		 */
-		size_t blockColdim() const{
+		size_t colsPerBlock() const{
 			return _block_cols;
-		}
-
-		/** Get the number of blocks per row in the matrix.
-		 * @returns Number of blocks per row in matrix
-		 */
-		size_t blocksPerRow() const{
-			return _rows;
-		}
-
-		/** Get the number of blocks per column in the matrix.
-		 * @returns Number of blocks per column in matrix
-		 */
-		size_t blocksPerColumn() const{
-			return _cols;
 		}
 
 		//////////////////
@@ -335,13 +406,13 @@ namespace LinBox
 		size_t           _r0; //!< Upper left corner block row of AlignedBlockedSubmatrix in \p _Mat
 		size_t           _c0; //!< Upper left corner block column of AlignedBlockedSubmatrix in \p _Mat
 		_BlockedMatrix& _Mat; //!< Parent BlockedMatrix
-	
+
 	public:	
 		//////////////////
 		// CONSTRUCTORS //
 		//////////////////
 
-		/** Constructor from an existing @ref BlasMatrix and dimensions.
+		/** Constructor from an existing @ref BlockedMatrix and dimensions.
 		 * @param M Pointer to @ref BlockedMatrix of which to construct submatrix
 		 * @param rowbeg Starting block row
 		 * @param colbeg Starting block column
@@ -378,6 +449,19 @@ namespace LinBox
 			_c0(colbeg),
 			_Mat(M){}
 
+		/** Constructor from an existing @ref ALignedBlockedSubmatrix.
+		 * @param rhs Pointer to @ref AlignedBlockedSubmatrix of which to construct submatrix
+		 */
+		AlignedBlockedSubmatrix(const AlignedBlockedSubmatrix& rhs) :
+			// Init list begins here.
+			_rows(rhs._rows),
+			_cols(rhs._cols),
+			_block_rows(rhs._block_rows),
+			_block_cols(rhs._block_cols),
+			_r0(rhs._r0),
+			_c0(rhs._c0),
+			_Mat(rhs._Mat){}
+	
 		//////////////////
 		//  DIMENSIONS  //
 		//////////////////
@@ -396,32 +480,32 @@ namespace LinBox
 			return _cols * _block_cols;
 		}
 
+		/** Get the number of block rows in the submatrix.
+		 * @returns Number of block rows in submatrix
+		 */
+		size_t blockRowdim() const{
+			return _rows;
+		}
+
+		/** Get the number of block columns in the submatrix.
+		 * @returns Number of block columns in submatrix
+		 */
+		size_t blockColdim() const{
+			return _cols;
+		}
+
 		/** Get the number of rows per block in the submatrix.
 		 * @returns Number of rows per block in submatrix
 		 */
-		size_t blockRowdim() const{
+		size_t rowsPerBlock() const{
 			return _block_rows;
 		}
 
 		/** Get the number of columns per block in the submatrix.
 		 * @returns Number of columns per block in submatrix
 		 */
-		size_t blockColdim() const{
+		size_t colsPerBlock() const{
 			return _block_cols;
-		}
-
-		/** Get the number of blocks per row in the submatrix.
-		 * @returns Number of blocks per row in submatrix
-		 */
-		size_t blocksPerRow() const{
-			return _rows;
-		}
-
-		/** Get the number of blocks per column in the submatrix.
-		 * @returns Number of blocks per column in submatrix
-		 */
-		size_t blocksPerColumn() const{
-			return _cols;
 		}
 
 		//////////////////
@@ -519,6 +603,51 @@ namespace LinBox
 			x = getEntry(i,j);
 			return x;
 		}
+
+		//////////////////
+		//   UTILITIES  //
+		//////////////////
+
+		/** Copy all elements of the input matrix into the blocked matrix.
+		 * This assumes that the dimensions of the input are less than or
+		 * the same as the dimensions of the blocked matrix.
+		 * @param m Input matrix
+		 * @returns Reference to this blocked matrix
+		 */
+		template<class _M>
+		Self_t& copyFromMatrix(const _M& m){
+			size_t rows = m.rowdim();
+			size_t cols = m.coldim();
+
+			for(size_t i = 0; i < rows; i++){
+				for(size_t j = 0; j < cols; j++){
+					setEntry(i,j,m.getEntry(i,j));
+				}
+			}
+
+			return *this;
+		}
+
+		/** Copy all elements of the blocked matrix into the provided matrix.
+		 * This assumes that the dimensions of the blocked matrix are
+		 * less than or the same as the dimensions of the provided matrix.
+		 * @param m A matrix
+		 * @returns Reference to this blocked matrix
+		 */
+		template<class _M>
+		Self_t& copyToMatrix(_M& m){
+			size_t rows = rowdim();
+			size_t cols = coldim();
+
+			for(size_t i = 0; i < rows; i++){
+				for(size_t j = 0; j < cols; j++){
+					m.setEntry(i,j,getEntry(i,j));
+				}
+			}
+
+			return *this;
+		}
+
 
 	}; // end of class AlignedBlockedSubmatrix
 } // end of namespace LinBox
