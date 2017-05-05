@@ -26,5 +26,5 @@ pkgincludesubdir=$(pkgincludedir)/matrix/blockedmatrix
 pkgincludesub_HEADERS =         \
 	block.h                 \
 	blocked-matrix.h        \
-	dense-block-allocator.h
-
+	dense-block-allocator.h \
+	sparse-block-allocator.h
