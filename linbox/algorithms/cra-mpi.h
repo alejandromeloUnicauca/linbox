@@ -47,6 +47,8 @@ template <> struct chooseMPItype<unsigned long int>{ static constexpr MPI_Dataty
 #include <gmp++/gmp++.h>
 #include <string>
 */
+#include <unordered_set>
+
 namespace LinBox
 {
 
@@ -322,13 +324,14 @@ namespace LinBox
 			}
 		}
 
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<BEGIN<<OF<<ROI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<BEGIN<<<<ROI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 		template<class Function, class PrimeIterator>
 		BlasVector<Givaro::ZRing<Integer> > & operator() ( BlasVector<Givaro::ZRing<Integer> > & num, Integer& den, Function& Iteration, PrimeIterator& primeg)
 		{
 
 #if 1
+
 			//  if there is no communicator or if there is only one process,
 			//  then proceed normally (without parallel)
 			if(_commPtr == 0 || _commPtr->size() == 1) {
@@ -345,15 +348,16 @@ Timer chrono;
 
 			//  parent propcess
 			if(process == 0){
-
+  std::unordered_set<int> prime_sent;
 				int primes[procs - 1];
 				//Domain D(*primeg);
 				//  for each slave process...
 				for(int i=1; i<procs; i++){
 					//  generate a new prime
-					++primeg; while(Builder_.noncoprime(*primeg) ) ++primeg;
+					++primeg; while(Builder_.noncoprime(*primeg) || prime_sent.find(*primeg) != prime_sent.end()) ++primeg;	//while(Builder_.noncoprime(*primeg)) ++primeg;
 					//  fix the array of currently sent primes
 					primes[i - 1] = *primeg;
+prime_sent.insert(*primeg);
 					//  send the prime to a slave process
 					_commPtr->send(primes[i - 1], i);
 				}  
@@ -375,7 +379,8 @@ Timer chrono;
                                         
 					//  if still working, queue a prime
 					if(! Builder_.terminated()){
-						++primeg; while(Builder_.noncoprime(*primeg) ) ++primeg;
+						++primeg; while(Builder_.noncoprime(*primeg) || prime_sent.find(*primeg) != prime_sent.end()) ++primeg;
+prime_sent.insert(*primeg);
 						primes[idle_process - 1] = *primeg;
 					}
 					//  otherwise, queue a poison pill
@@ -502,7 +507,6 @@ while(poison_pills_left > 0 ){
 					_commPtr->send(primes2[i - 1], process+1); 
 				}
 
-
 			}
 					//  otherwise, queue a poison pill
 			else{
@@ -519,10 +523,7 @@ while(poison_pills_left > 0 ){
 					primes2[i - 1] = 0;
 					_commPtr->send(primes2[i - 1], process+1); 
 				}
-
-
 			}
-
 
 } 
 
@@ -585,7 +586,7 @@ for (int j=0; j<procs-1; j++) _commPtr->recv(pp[j], process-1);
 //<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 		}
 
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>END>>OF>>ROI>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>END>>>>ROI>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 
@@ -605,75 +606,3 @@ for (int j=0; j<procs-1; j++) _commPtr->recv(pp[j], process-1);
 // indent-tabs-mode: nil
 // c-basic-offset: 8
 // End:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
