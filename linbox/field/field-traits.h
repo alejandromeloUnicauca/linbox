@@ -60,28 +60,29 @@ namespace LinBox {
 
 	/*! Default ring category.
 	 */
+
 	template <class Field>
 	struct ClassifyRing {
 		typedef	RingCategories::GenericTag categoryTag;
 	};
 
-	using Givaro::Caster;
 
+	using Givaro::Caster;
+/** This does not work for randomly filling dense matrix with non givaro integer type value using Linbox functions which cause rank function link error
         template<>
         struct ClassifyRing<Givaro::QField<Givaro::Rational>> {
                 typedef RingCategories::RationalTag categoryTag;
         };
-/*
-*** Modification for random matrix generation otherwise will not succeed in compiling for MPI communication test with different data types ***
+*/
+    template<class Element>
+    struct ClassifyRing<Givaro::ZRing<Element>> {
+        typedef RingCategories::IntegerTag categoryTag;
+    };
+
         template<>
         struct ClassifyRing<Givaro::ZRing<Givaro::Integer>> {
                 typedef RingCategories::IntegerTag categoryTag;
         };
-*/
-        template<class Element>
-        struct ClassifyRing<Givaro::ZRing<Element>> {
-                 typedef RingCategories::IntegerTag categoryTag;
-         };
         template<>
         struct ClassifyRing<Givaro::IntegerDom> {
                 typedef RingCategories::IntegerTag categoryTag;
