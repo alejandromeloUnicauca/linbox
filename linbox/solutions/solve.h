@@ -311,6 +311,23 @@ namespace LinBox
 		return x;
 	}
 
+        //! @internal  Elimination for DenseMatrix on Z/pZ. Matrix A can be overwritten.
+	template <class Vector, class Field>
+	Vector& solvein(Vector& x, BlasMatrix<Field>& A, const Vector& b,
+		      const RingCategories::ModularTag & tag,
+		      const Method::BlasElimination& m)
+	{
+		if ((A.coldim() != x.size()) || (A.rowdim() != b.size()))
+			throw LinboxError("LinBox ERROR: dimension of data are not compatible in system solving (solving impossible)");
+
+//		commentator().start ("Solving linear system (FFLAS LQUP)", "LQUP::left_solve");
+		LQUPMatrix<Field> LQUP(A);
+		LQUP.left_solve(x, b);
+//		commentator().stop ("done", NULL, "LQUP::left_solve");
+
+		return x;
+	}
+
 	template <class Vector, class Field>
 	Vector& solve(Vector& x, const BlasMatrix<Field>& A, const Vector& b,
 		      const RingCategories::ModularTag & tag,
@@ -832,7 +849,7 @@ namespace LinBox
 			FVector Bp(F, B);
 
 			VectorWrapper::ensureDim (x, A.coldim());
-			return solve( x, Ap, Bp, M);
+			return solvein( x, Ap, Bp, M);
 		}
 	};
 
